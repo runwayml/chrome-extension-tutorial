@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Runway Video Generator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      #videoContainer {
+        margin-top: 20px;
+      }
+      .video-wrapper {
+        position: relative;
+        margin-bottom: 20px;
+        align-items: flex-end;
+        display: flex;
+        flex-direction: column;
+      }
+      video {
+        max-width: 100%;
+      }
+      #apiKeyForm {
+        margin-bottom: 20px;
+      }
+      #apiKey {
+        width: 250px;
+      }
+      .remove-video {
+        position: relative;
+        background-color: #111;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        width: 24px;
+        height: 24px;
+        font-size: 16px;
+        margin-bottom: 2px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .remove-video:hover {
+        background-color: rgba(255, 0, 0, 1);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Runway Video Generator</h1>
+    <div id="apiKeyForm" style="display: none">
+      <label for="apiKey">Enter your Runway API Key:</label>
+      <input type="password" id="apiKey" required />
+      <button id="saveApiKey">Save</button>
+    </div>
+    <div id="status">Waiting for image...</div>
+    <div id="videoContainer"></div>
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

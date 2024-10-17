@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Runway Video Generator",
+  "version": "1.0",
+  "description": "Generate videos from images using Runway API",
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "sidePanel",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://api.dev.runwayml.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Open Runway Video Generator"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
