@@ -1,4 +1,4 @@
-let apiKey = '';
+let apiKey = ''; // NEVER store api keys in source code. This is why we use the storage API and prompt the user to enter their API key in the side panel.
 
 function showApiKeyForm() {
   document.getElementById('apiKeyForm').style.display = 'block';

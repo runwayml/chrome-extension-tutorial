@@ -315,6 +315,9 @@ The sidepanel consists of 2 files, the html file, and the javascript file that h
 
 We have defined some css classes, as well as a form that asks the user for their API key. You will see this form for the API key only once — when you first invoke the side panel. 
 
+> [!WARNING]  
+> Never store API keys in source code. This is why we use the storage API and prompt the user to enter their API key in the side panel.
+
 The API Key is then stored in Chrome’s local storage for the extension. It will be removed whenever the extension is uninstalled. 
 
 Next, create a new file and name it `sidepanel.js`
