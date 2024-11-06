@@ -40,6 +40,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+function createImageAndLoader(imageUrl) {
+  const container = document.createElement('div');
+  container.className = 'image-container';
+
+  const imageContainer = document.createElement('div');
+  imageContainer.className = 'image-container';
+
+  const loader = document.createElement('div');
+  loader.className = 'loader';
+
+  const loaderText = document.createElement('div');
+  loaderText.textContent = 'Generating video...';
+
+  const newImage = document.createElement('img');
+  newImage.src = imageUrl;
+  newImage.style.width = '100%';
+  newImage.style.height = 'auto';
+
+  imageContainer.appendChild(loader);
+  imageContainer.appendChild(newImage);
+  container.appendChild(imageContainer);
+  container.appendChild(loaderText);
+  return container;
+}
+
 async function generateVideo(imageUrl) {
   if (!apiKey) {
     showApiKeyForm();
@@ -47,14 +72,20 @@ async function generateVideo(imageUrl) {
   }
 
   const statusElement = document.getElementById('status');
-  statusElement.textContent = 'Generating video...';
+  statusElement.textContent = '';
+  const newImage = createImageAndLoader(imageUrl);
+  document.getElementById('videoContainer').insertBefore(newImage, document.getElementById('videoContainer').firstChild);
 
   try {
     const taskId = await startVideoGeneration(imageUrl);
+    newImage.id = `image-${taskId}`;
+
     const videoUrl = await pollForCompletion(taskId);
+    document.getElementById(`image-${taskId}`).remove();
     renderVideo(videoUrl);
     saveVideoData(imageUrl, videoUrl);
   } catch (error) {
+    newImage.remove();
     statusElement.textContent = `Error: ${error.message}`;
   }
 }
@@ -91,7 +122,7 @@ async function pollForCompletion(taskId) {
       return videoUrl;
     } catch (error) {
       if (error.message === 'still_processing') {
-        statusElement.textContent = 'Generating video... Please wait.';
+        statusElement.textContent = '';
         await new Promise(resolve => setTimeout(resolve, 2000));
       } else {
         throw error;
@@ -102,19 +133,23 @@ async function pollForCompletion(taskId) {
 
 function renderVideo(videoUrl) {
   const statusElement = document.getElementById('status');
-  statusElement.textContent = 'Video generated successfully!';
+  statusElement.textContent = '';
 
   const videoContainer = document.getElementById('videoContainer');
   const videoWrapper = document.createElement('div');
   videoWrapper.className = 'video-wrapper';
   videoWrapper.innerHTML = `
-    <button class="remove-video" data-url="${videoUrl}">x</button>
     <video controls autoplay muted loop src="${videoUrl}"></video>
   `;
   videoContainer.insertBefore(videoWrapper, videoContainer.firstChild);
+  const removeButton = document.createElement('button');
+  removeButton.className = 'remove-button';
+  removeButton.setAttribute('data-url', videoUrl);
+  removeButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
+  videoWrapper.appendChild(removeButton);
 
   // Add event listener to the new remove button
-  videoWrapper.querySelector('.remove-video').addEventListener('click', removeVideo);
+  videoWrapper.querySelector('.remove-button').addEventListener('click', removeVideo);
 }
 
 function saveVideoData(imageUrl, videoUrl) {
@@ -146,16 +181,7 @@ function loadSavedVideos() {
     videoContainer.innerHTML = ''; // Clear existing videos
 
     videos.reverse().forEach(video => {
-      const videoWrapper = document.createElement('div');
-      videoWrapper.className = 'video-wrapper';
-      videoWrapper.innerHTML = `
-        <button class="remove-video" data-url="${video.videoUrl}">x</button>
-        <video controls autoplay muted loop src="${video.videoUrl}"></video>
-      `;
-      videoContainer.appendChild(videoWrapper);
-
-      // Add event listener to the remove
-      videoWrapper.querySelector('.remove-video').addEventListener('click', removeVideo);
+      renderVideo(video.videoUrl);
     });
   });
 }
