@@ -1,6 +1,6 @@
 <img src="tutorial-images/demo.gif" alt="demo.gif" style="max-width: 600px;">
 
-# Runway API Try On Chrome Extension
+# Runway Generate Video Chrome Extension
 
 This Chrome extension connects to the Gen-4 Video API, allowing you to generate a video from any image on a webpage.
 
