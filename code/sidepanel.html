@@ -16,7 +16,8 @@
         font-style: normal;
         padding: 20px;
         color: #0c0c0c;
-        font-size: 13px;
+        font-size: 16px;
+        line-height: 1.5;
       }
       #videoContainer {
         margin-top: 20px;
@@ -85,13 +86,71 @@
       .remove-video:hover {
         background-color: rgba(255, 0, 0, 1);
       }
+      .cta-btn {
+        background-color: #333;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+      }
+
+      .cta-btn:hover {
+        background-color: #555;
+      }
+
+      .cta-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+        box-shadow: none;
+      }
+
+      .cta-btn:disabled:hover {
+        background-color: #cccccc;
+      }
+
+      input[type="text"],
+      input[type="password"] {
+        border: 1px solid #0c0c0c;
+        border-radius: 4px;
+        padding: 8px;
+        width: 100%;
+        margin-bottom: 8px;
+        box-sizing: border-box;
+        font-size: 16px;
+        line-height: 1.5;
+      }
     </style>
   </head>
   <body>
     <div id="apiKeyForm" style="display: none">
       <label for="apiKey">Enter your Runway API Key:</label>
       <input type="password" id="apiKey" required />
-      <button id="saveApiKey">Save</button>
+      <button id="saveApiKey" class="cta-btn">Save</button>
+    </div>
+    <div id="promptForm" style="display: none; margin-bottom: 16px">
+      <img
+        id="selectedImagePreview"
+        src=""
+        alt="Selected"
+        style="
+          display: none;
+          max-width: 250px;
+          max-height: 180px;
+          margin-bottom: 8px;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        "
+      />
+      <label for="promptInput">Prompt:</label>
+      <input
+        type="text"
+        id="promptInput"
+        placeholder="Describe the animation..."
+      />
+      <button id="generateButton" class="cta-btn">Generate</button>
     </div>
     <div id="status">
       Right click on an image and select "Generate video with Runway" to

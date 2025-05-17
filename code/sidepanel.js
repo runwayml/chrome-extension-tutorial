@@ -1,4 +1,40 @@
 let apiKey = ''; // NEVER store api keys in source code. This is why we use the storage API and prompt the user to enter their API key in the side panel.
+let selectedImageUrl = null;
+
+const allowedRatios = [
+  { width: 1280, height: 720 },
+  { width: 720, height: 1280 },
+  { width: 1104, height: 832 },
+  { width: 832, height: 1104 },
+  { width: 960, height: 960 },
+  { width: 1584, height: 672 },
+];
+
+function findClosestRatio(width, height) {
+  const inputRatio = width / height;
+  let closest = allowedRatios[0];
+  let minDiff = Math.abs(inputRatio - (closest.width / closest.height));
+  for (const ratio of allowedRatios) {
+    const ratioValue = ratio.width / ratio.height;
+    const diff = Math.abs(inputRatio - ratioValue);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closest = ratio;
+    }
+  }
+  return `${closest.width}:${closest.height}`;
+}
+
+function getImageDimensions(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = function() {
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.onerror = reject;
+    img.src = imageUrl;
+  });
+}
 
 function showApiKeyForm() {
   document.getElementById('apiKeyForm').style.display = 'block';
@@ -33,11 +69,33 @@ chrome.storage.local.get("apiKey", (result) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "generateVideo") {
     if (apiKey) {
-      generateVideo(message.imageUrl);
+      selectedImageUrl = message.imageUrl;
+      document.getElementById('promptForm').style.display = 'block';
+      document.getElementById('promptInput').value = '';
+      document.getElementById('status').textContent = 'Enter a prompt and click Generate.';
+      // Show the selected image
+      const imgPreview = document.getElementById('selectedImagePreview');
+      imgPreview.src = selectedImageUrl;
+      imgPreview.style.display = 'block';
     } else {
       showApiKeyForm();
     }
   }
+});
+
+// Add event listener for Generate button
+const generateButton = document.getElementById('generateButton');
+generateButton.addEventListener('click', async () => {
+  const prompt = document.getElementById('promptInput').value.trim();
+  if (!selectedImageUrl || !prompt) {
+    document.getElementById('status').textContent = 'Please select an image and enter a prompt.';
+    return;
+  }
+  document.getElementById('promptForm').style.display = 'none';
+  // Hide the image preview after starting generation
+  document.getElementById('selectedImagePreview').style.display = 'none';
+  await generateVideo(selectedImageUrl, prompt);
+  selectedImageUrl = null;
 });
 
 function createImageAndLoader(imageUrl) {
@@ -65,7 +123,7 @@ function createImageAndLoader(imageUrl) {
   return container;
 }
 
-async function generateVideo(imageUrl) {
+async function generateVideo(imageUrl, prompt) {
   if (!apiKey) {
     showApiKeyForm();
     return;
@@ -77,7 +135,12 @@ async function generateVideo(imageUrl) {
   document.getElementById('videoContainer').insertBefore(newImage, document.getElementById('videoContainer').firstChild);
 
   try {
-    const taskId = await startVideoGeneration(imageUrl);
+    // Get image dimensions and closest ratio
+    const { width, height } = await getImageDimensions(imageUrl);
+    const closestRatio = findClosestRatio(width, height);
+
+    // Pass closestRatio and prompt to startVideoGeneration
+    const taskId = await startVideoGeneration(imageUrl, closestRatio, prompt);
     newImage.id = `image-${taskId}`;
 
     const videoUrl = await pollForCompletion(taskId);
@@ -90,9 +153,9 @@ async function generateVideo(imageUrl) {
   }
 }
 
-async function startVideoGeneration(imageUrl) {
+async function startVideoGeneration(imageUrl, ratio, prompt) {
   return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage({ action: "startVideoGeneration", imageUrl, apiKey }, (response) => {
+    chrome.runtime.sendMessage({ action: "startVideoGeneration", imageUrl, apiKey, ratio, prompt }, (response) => {
       if (response.success) {
         resolve(response.taskId);
       } else {

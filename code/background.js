@@ -17,7 +17,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "startVideoGeneration") {
-    startVideoGeneration(message.imageUrl, message.apiKey)
+    startVideoGeneration(message.imageUrl, message.apiKey, message.ratio, message.prompt)
       .then(taskId => sendResponse({ success: true, taskId }))
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true;
@@ -29,24 +29,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-async function startVideoGeneration(imageUrl, apiKey) {
-  const response = await fetch("https://api.dev.runwayml.com/v1/image_to_video", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "X-Runway-Version": "2024-09-13",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      "promptImage": imageUrl,
-      "seed": Math.floor(Math.random() * 1000000000),
-      "model": "gen3a_turbo",
-      "promptText": "Generate a video",
-      "watermark": false,
-      "duration": 5,
-      "ratio": "16:9"
-    }),
-  });
+async function startVideoGeneration(imageUrl, apiKey, ratio, prompt) {
+  const response = await fetch(
+    "https://api.dev.runwayml.com/v1/image_to_video",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "X-Runway-Version": "2024-11-06",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        promptImage: imageUrl,
+        seed: Math.floor(Math.random() * 1000000000),
+        model: "gen4_turbo",
+        promptText: prompt,
+        duration: 5,
+        ratio,
+      }),
+    }
+  );
 
   const result = await response.json();
   if (!response.ok) {
@@ -59,7 +61,7 @@ async function pollForCompletion(taskId, apiKey) {
   const response = await fetch(`https://api.dev.runwayml.com/v1/tasks/${taskId}`, {
     headers: {
       "Authorization": `Bearer ${apiKey}`,
-      "X-Runway-Version": "2024-09-13",
+      "X-Runway-Version": "2024-11-06",
     },
   });
 
